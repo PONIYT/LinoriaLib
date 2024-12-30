@@ -1,21 +1,154 @@
-local InputService = game:GetService('UserInputService');
-local TextService = game:GetService('TextService');
-local CoreGui = game:GetService('CoreGui');
-local Teams = game:GetService('Teams');
-local Players = game:GetService('Players');
+local InputService = game:GetService('UserInputService')
+local TextService = game:GetService('TextService')
+local CoreGui = game:GetService('CoreGui')
+local Teams = game:GetService('Teams')
+local Players = game:GetService('Players')
 local RunService = game:GetService('RunService')
-local TweenService = game:GetService('TweenService');
-local RenderStepped = RunService.RenderStepped;
-local LocalPlayer = Players.LocalPlayer;
-local Mouse = LocalPlayer:GetMouse();
+local TweenService = game:GetService('TweenService')
+local RenderStepped = RunService.RenderStepped
+local LocalPlayer = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+local Mouse = LocalPlayer:GetMouse()
 
-local ProtectGui = protectgui or (syn and syn.protect_gui) or (function() end);
+local ProtectGui = protectgui or (syn and syn.protect_gui) or function() end
 
-local ScreenGui = Instance.new('ScreenGui');
-ProtectGui(ScreenGui);
+local ScreenGui = Instance.new('ScreenGui')
+ScreenGui.Name = "LinoriaGui"
+ProtectGui(ScreenGui)
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+if gethui then
+	ScreenGui.Parent = gethui()
+elseif game.CoreGui:FindFirstChild('RobloxGui') then
+	ScreenGui.Parent = game.CoreGui:FindFirstChild('RobloxGui')
+else
+	ScreenGui.Parent = game.CoreGui
+end
 
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global;
-ScreenGui.Parent = CoreGui;
+
+-- Include your existing script above this line
+
+-- Create a small toggle button for mobile players
+local ScreenGui = Instance.new("ScreenGui")
+local ToggleButton = Instance.new("TextButton")
+
+-- Configure ScreenGui
+ScreenGui.Name = "MenuToggleGui"
+ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ResetOnSpawn = false
+
+-- Configure ToggleButton
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Parent = ScreenGui
+ToggleButton.Text = "☰" -- A simple menu icon
+ToggleButton.Size = UDim2.new(0, 60, 0, 60) -- Slightly larger button
+ToggleButton.Position = UDim2.new(0, 20, 0, 20) -- Positioned at the top-left corner with some padding
+ToggleButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.TextSize = 28
+ToggleButton.BorderSizePixel = 0
+ToggleButton.Active = true
+ToggleButton.Draggable = true -- Allow moving the button if needed
+
+
+local ToggleButtonCorner = Instance.new("UICorner", ToggleButton)
+ToggleButtonCorner.CornerRadius = UDim.new(0, 8)
+
+
+local function AddHoverEffect(button)
+    button.MouseEnter:Connect(function()
+        button.BackgroundColor3 = Color3.fromRGB(65, 65, 65)
+    end)
+
+    button.MouseLeave:Connect(function()
+        button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    end)
+end
+AddHoverEffect(ToggleButton)
+
+
+local MenuVisible = true
+
+
+local function ToggleMenu()
+    MenuVisible = not MenuVisible
+    Library.KeybindFrame.Visible = MenuVisible
+end
+
+
+ToggleButton.MouseButton1Click:Connect(ToggleMenu)
+
+
+Library:OnUnload(function()
+    ScreenGui:Destroy()
+    print("Menu toggle button removed.")
+end)
+
+
+local LinoriaScreenGui = Instance.new('ScreenGui')
+LinoriaScreenGui.Name = "LinoriaGui"
+ProtectGui(LinoriaScreenGui)
+LinoriaScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+if gethui then
+    LinoriaScreenGui.Parent = gethui()
+elif game.CoreGui:FindFirstChild('RobloxGui') then
+    LinoriaScreenGui.Parent = game.CoreGui:FindFirstChild('RobloxGui')
+else
+    LinoriaScreenGui.Parent = game.CoreGui
+end
+
+local UICorner1 = Instance.new("UICorner")
+local UICorner2 = Instance.new("UICorner")
+local backgroundFrame = Instance.new("Frame")
+local jesterButton = Instance.new("TextButton")
+local UIPadding = Instance.new("UIPadding")
+
+backgroundFrame.Name = "backgroundFrame"
+backgroundFrame.Parent = LinoriaScreenGui
+backgroundFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+backgroundFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+backgroundFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+backgroundFrame.BorderSizePixel = 0
+backgroundFrame.Position = UDim2.new(0.9, 0, 0.5, 0)
+backgroundFrame.Size = UDim2.new(0, 120, 0, 120)
+
+UICorner1.CornerRadius = UDim.new(0, 12)
+UICorner1.Parent = backgroundFrame
+
+UICorner2.CornerRadius = UDim.new(0, 8)
+UICorner2.Parent = jesterButton
+
+jesterButton.Name = "jesterButton"
+jesterButton.Parent = backgroundFrame
+jesterButton.AnchorPoint = Vector2.new(0.5, 0.5)
+jesterButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+jesterButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+jesterButton.BorderSizePixel = 0
+jesterButton.Position = UDim2.new(0.5, 0, 0.5, 0)
+jesterButton.Size = UDim2.new(1, -10, 1, -10)
+jesterButton.Font = Enum.Font.GothamBold
+jesterButton.Text = "Jester Hub"
+jesterButton.TextColor3 = Color3.fromRGB(135, 206, 250)
+jesterButton.TextScaled = true
+jesterButton.TextSize = 14.000
+jesterButton.TextWrapped = true
+
+UIPadding.Parent = backgroundFrame
+UIPadding.PaddingTop = UDim.new(0.1, 0)
+UIPadding.PaddingLeft = UDim.new(0.1, 0)
+UIPadding.PaddingRight = UDim.new(0.1, 0)
+UIPadding.PaddingBottom = UDim.new(0.1, 0)
+
+jesterButton.Activated:Connect(function()
+    local windowFrame = LinoriaScreenGui:FindFirstChild("windowFrame")
+    if windowFrame then
+        windowFrame.Visible = not windowFrame.Visible
+    else
+        print("windowFrame not found")
+    end
+end)
+
+
 
 local Toggles = {};
 local Options = {};

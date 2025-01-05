@@ -30,47 +30,76 @@ end
 
 local UICorner1 = Instance.new("UICorner")
 local UICorner2 = Instance.new("UICorner")
+local UIGradient = Instance.new("UIGradient")
 local backgroundFrame = Instance.new("Frame")
 local JesterButton = Instance.new("TextButton")
 local UIPadding = Instance.new("UIPadding")
+local UIStroke = Instance.new("UIStroke")
 
 backgroundFrame.Name = "backgroundFrame"
 backgroundFrame.Parent = ScreenGui
 backgroundFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-backgroundFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-backgroundFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+backgroundFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 backgroundFrame.BorderSizePixel = 0
 backgroundFrame.Position = UDim2.new(0.9, 0, 0.5, 0)
-backgroundFrame.Size = UDim2.new(0, 100, 0, 100)
+backgroundFrame.Size = UDim2.new(0, 120, 0, 120)
 
+UICorner1.CornerRadius = UDim.new(0.2, 0)
 UICorner1.Parent = backgroundFrame
-UICorner2.Parent = JesterButton
+
+UIPadding.Parent = backgroundFrame
+UIPadding.PaddingTop = UDim.new(0.05, 0)
+UIPadding.PaddingLeft = UDim.new(0.05, 0)
+UIPadding.PaddingRight = UDim.new(0.05, 0)
+UIPadding.PaddingBottom = UDim.new(0.05, 0)
 
 JesterButton.Name = "JesterButton"
 JesterButton.Parent = backgroundFrame
 JesterButton.AnchorPoint = Vector2.new(0.5, 0.5)
-JesterButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-JesterButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+JesterButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 JesterButton.BorderSizePixel = 0
 JesterButton.Position = UDim2.new(0.5, 0, 0.5, 0)
 JesterButton.Size = UDim2.new(1, 0, 1, 0)
-JesterButton.Font = Enum.Font.PermanentMarker
+JesterButton.Font = Enum.Font.GothamBold
 JesterButton.Text = "Jester Hub"
-JesterButton.TextColor3 = Color3.fromRGB(75, 0, 130)
+JesterButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 JesterButton.TextScaled = true
-JesterButton.TextSize = 14.000
 JesterButton.TextWrapped = true
 
-UIPadding.Parent = backgroundFrame
-UIPadding.PaddingTop = UDim.new(0.1, 0)
-UIPadding.PaddingLeft = UDim.new(0.1, 0)
-UIPadding.PaddingRight = UDim.new(0.1, 0)
-UIPadding.PaddingBottom = UDim.new(0.1, 0)
+-- Добавление закругленных углов
+UICorner2.CornerRadius = UDim.new(0.3, 0)
+UICorner2.Parent = JesterButton
+
+-- Добавление градиента
+UIGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(75, 0, 130)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(238, 130, 238))
+}
+UIGradient.Rotation = 45
+UIGradient.Parent = JesterButton
+
+-- Добавление обводки
+UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+UIStroke.Thickness = 2
+UIStroke.Color = Color3.fromRGB(255, 255, 255)
+UIStroke.Parent = JesterButton
+
+-- Подсветка при наведении
+JesterButton.MouseEnter:Connect(function()
+    JesterButton.BackgroundColor3 = Color3.fromRGB(75, 75, 75)
+end)
+
+JesterButton.MouseLeave:Connect(function()
+    JesterButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+end)
 
 JesterButton.Activated:Connect(function()
-	local windowFrame = ScreenGui.windowFrame
-	windowFrame.Visible = not windowFrame.Visible
+    local windowFrame = ScreenGui:FindFirstChild("windowFrame")
+    if windowFrame then
+        windowFrame.Visible = not windowFrame.Visible
+    end
 end)
+
 
 local Toggles = {}
 local Options = {}

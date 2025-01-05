@@ -31,7 +31,7 @@ end
 local UICorner1 = Instance.new("UICorner")
 local UICorner2 = Instance.new("UICorner")
 local backgroundFrame = Instance.new("Frame")
-local tempestButton = Instance.new("TextButton")
+local JesterButton = Instance.new("TextButton")
 local UIPadding = Instance.new("UIPadding")
 
 backgroundFrame.Name = "backgroundFrame"
@@ -57,9 +57,9 @@ JesterButton.Size = UDim2.new(1, 0, 1, 0)
 JesterButton.Font = Enum.Font.PermanentMarker
 JesterButton.Text = "Jester Hub"
 JesterButton.TextColor3 = Color3.fromRGB(75, 0, 130)
-tempestButton.TextScaled = true
-tempestButton.TextSize = 14.000
-tempestButton.TextWrapped = true
+JesterButton.TextScaled = true
+JesterButton.TextSize = 14.000
+JesterButton.TextWrapped = true
 
 UIPadding.Parent = backgroundFrame
 UIPadding.PaddingTop = UDim.new(0.1, 0)

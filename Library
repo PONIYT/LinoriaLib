@@ -44,19 +44,19 @@ backgroundFrame.Position = UDim2.new(0.9, 0, 0.5, 0)
 backgroundFrame.Size = UDim2.new(0, 100, 0, 100)
 
 UICorner1.Parent = backgroundFrame
-UICorner2.Parent = tempestButton
+UICorner2.Parent = JesterButton
 
-tempestButton.Name = "tempestButton"
-tempestButton.Parent = backgroundFrame
-tempestButton.AnchorPoint = Vector2.new(0.5, 0.5)
-tempestButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-tempestButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
-tempestButton.BorderSizePixel = 0
-tempestButton.Position = UDim2.new(0.5, 0, 0.5, 0)
-tempestButton.Size = UDim2.new(1, 0, 1, 0)
-tempestButton.Font = Enum.Font.PermanentMarker
-tempestButton.Text = "Tempest Hub"
-tempestButton.TextColor3 = Color3.fromRGB(75, 0, 130)
+JesterButton.Name = "JesterButton"
+JesterButton.Parent = backgroundFrame
+JesterButton.AnchorPoint = Vector2.new(0.5, 0.5)
+JesterButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+JesterButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+JesterButton.BorderSizePixel = 0
+JesterButton.Position = UDim2.new(0.5, 0, 0.5, 0)
+JesterButton.Size = UDim2.new(1, 0, 1, 0)
+JesterButton.Font = Enum.Font.PermanentMarker
+JesterButton.Text = "Jester Hub"
+JesterButton.TextColor3 = Color3.fromRGB(75, 0, 130)
 tempestButton.TextScaled = true
 tempestButton.TextSize = 14.000
 tempestButton.TextWrapped = true
@@ -67,7 +67,7 @@ UIPadding.PaddingLeft = UDim.new(0.1, 0)
 UIPadding.PaddingRight = UDim.new(0.1, 0)
 UIPadding.PaddingBottom = UDim.new(0.1, 0)
 
-tempestButton.Activated:Connect(function()
+JesterButton.Activated:Connect(function()
 	local windowFrame = ScreenGui.windowFrame
 	windowFrame.Visible = not windowFrame.Visible
 end)

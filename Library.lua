@@ -1,3 +1,6 @@
+print('Loading Linoria UI v2.18.1')
+
+-- violin-suzutsuki i love you !!!!!!
 
 local InputService = game:GetService('UserInputService')
 local TextService = game:GetService('TextService')
@@ -111,13 +114,11 @@ local Library = {
 	HudRegistry = {},
 
 	FontColor = Color3.fromRGB(255, 255, 255), 
-MainColor = Color3.fromRGB(28, 28, 28), 
-BackgroundColor = Color3.fromRGB(7, 5, 5),
-AccentColor = Color3.fromRGB(3, 255, 6),
-OutlineColor = Color3.fromRGB(46, 40, 43),
-RiskColor = Color3.fromRGB(255, 50, 50),
-
-
+        MainColor = Color3.fromRGB(28, 28, 28), 
+       BackgroundColor = Color3.fromRGB(7, 5, 5),
+       AccentColor = Color3.fromRGB(3, 255, 6),
+       OutlineColor = Color3.fromRGB(46, 40, 43),
+       RiskColor = Color3.fromRGB(255, 50, 50),
 
 
 	Black = Color3.new(0, 0, 0),

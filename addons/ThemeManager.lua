@@ -5,8 +5,7 @@ local ThemeManager = {} do
 
 	ThemeManager.Library = nil
 	ThemeManager.BuiltInThemes = {
-              ['Emerald'] = { 1, httpService:JSONDecode('{"FontColor":"ffffff","MainColor":"1c1c1c","BackgroundColor":"070505","AccentColor":"03ff06","OutlineColor":"2e282b","RiskColor":"ff3232"}') }
-}
+              ['Emerald'] = { 1, httpService:JSONDecode('{"FontColor":"ffffff","MainColor":"1c1c1c","BackgroundColor":"070505","AccentColor":"03ff06","OutlineColor":"2e282b","RiskColor":"ff3232"}') },
 		['Default'] 		= { 2, httpService:JSONDecode('{"FontColor":"ffffff","MainColor":"1c1c1c","AccentColor":"0055ff","BackgroundColor":"141414","OutlineColor":"323232"}') },
 		['BBot'] 			= { 3, httpService:JSONDecode('{"FontColor":"ffffff","MainColor":"1e1e1e","AccentColor":"7e48a3","BackgroundColor":"232323","OutlineColor":"141414"}') },
 		['Fatality']		= { 4, httpService:JSONDecode('{"FontColor":"ffffff","MainColor":"1e1842","AccentColor":"c50754","BackgroundColor":"191335","OutlineColor":"3c355d"}') },

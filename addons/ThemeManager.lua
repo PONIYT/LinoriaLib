@@ -58,7 +58,7 @@ ThemeManager.BuiltInThemes = {
     ["Emerald"] = {
         9,
         httpService:JSONDecode(
-            '{"FontColor":"ffffff","MainColor":"221c22","AccentColor":"03ff06","BackgroundColor":"070505","OutlineColor":"2e282b"}'
+            '{"FontColor":"ffffff","MainColor":"1c1c1c","AccentColor":"03ff06","BackgroundColor":"070505","OutlineColor":"2e282b"}'
         ),
     }
 }

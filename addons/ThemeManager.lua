@@ -52,7 +52,7 @@ ThemeManager.BuiltInThemes = {
 	["Quartz"] = {
 		8,
 		httpService:JSONDecode(
-			'{"FontColor":"ffffff","MainColor":"232330","AccentColor":"426e87","BackgroundColor":"1d1b26","OutlineColor":"27232f"}'
+			'{"FontColor":"ffffff","MainColor":"1c1c1c","AccentColor":"426e87","BackgroundColor":"1d1b26","OutlineColor":"27232f"}'
 		),
 	},
     ["Emerald"] = {

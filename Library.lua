@@ -1,6 +1,3 @@
-print('Loading Linoria UI v2.18.1')
-
--- violin-suzutsuki i love you !!!!!!
 
 local InputService = game:GetService('UserInputService')
 local TextService = game:GetService('TextService')

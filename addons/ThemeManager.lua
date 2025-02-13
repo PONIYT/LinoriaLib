@@ -55,13 +55,14 @@ ThemeManager.BuiltInThemes = {
 			'{"FontColor":"ffffff","MainColor":"232330","AccentColor":"426e87","BackgroundColor":"1d1b26","OutlineColor":"27232f"}'
 		),
 	},
-	["Emerald"] = {
-		9,
-		httpService:JSONDecode(
-			'{"FontColor":"ffffff","MainColor":"221c22","AccentColor":"03ff06","BackgroundColor":"070505","OutlineColor":"2e282b"}'
-		),
-	},
+    ["Emerald"] = {
+        9,
+        httpService:JSONDecode(
+            '{"FontColor":"ffffff","MainColor":"221c22","AccentColor":"03ff06","BackgroundColor":"070505","OutlineColor":"2e282b"}'
+        ),
+    }
 }
+
 
 function ThemeManager:ApplyTheme(theme)
 	local customThemeData = self:GetCustomTheme(theme)

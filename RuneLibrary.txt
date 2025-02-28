@@ -1,0 +1,616 @@
+local Rune = {}
+local NotificationLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/IceMinisterq/Notification-Library/Main/Library.lua"))()
+local UserInputService = game:GetService("UserInputService")
+local CollectionService = game:GetService("CollectionService")
+local RunService = game:GetService("RunService")
+local LogService = game:GetService("LogService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+local RemoteEvents = ReplicatedStorage:WaitForChild("RemoteEvents")
+local ClientModules = ReplicatedStorage:WaitForChild("Modules"):WaitForChild("ClientModules")
+local Mouse = LocalPlayer:GetMouse()
+local BoolValues = Character:WaitForChild("BoolValues")
+local Map = workspace:WaitForChild("Map")
+
+local Modules = {
+    EquipHandler = require(ReplicatedStorage.Modules.EquipHandler),
+    MaterialSounds = require(ReplicatedStorage.Modules.MaterialSounds),
+    RayCastModule = require(ReplicatedStorage.Modules.RayCast),
+    DropSystem = require(ReplicatedStorage.Modules.DropSystem),
+    StunHandler = require(ReplicatedStorage.Modules.StunHandler),
+    FootStepModule = require(ReplicatedStorage.Modules.FootStepModule),
+    Indicators = require(ReplicatedStorage.Modules.Indicators),
+    Runes = require(ReplicatedStorage.Modules.Runes),
+    GearStats = require(ReplicatedStorage.Modules.GearStats),
+    MovementModule = require(ReplicatedStorage.Modules.MovementModule),
+    MoneyModule = require(ReplicatedStorage.Modules.MoneyModule),
+    ConfigModule = require(ReplicatedStorage.Modules.ConfigModule),
+    EffectModule = require(ReplicatedStorage.Modules.EffectModule),
+    NPCStages = require(ReplicatedStorage.Modules.NPCStages),
+    ToolFrameSetUp = require(ReplicatedStorage.Modules.ToolFrameSetUp),
+    ConfirmationModule = require(ReplicatedStorage.Modules.ConfirmationModule),
+    ReputationModule = require(ReplicatedStorage.Modules.ReputationModule),
+    InfoOverlay = require(ReplicatedStorage.Modules.InfoOverlays),
+    GuildModule = require(ReplicatedStorage.Modules.GuildModule),
+    TradingModule = require(ReplicatedStorage.Modules.TradingModule),
+    Network = require(ReplicatedStorage.Modules.Network),
+    CharUtilities = require(ClientModules.CharUtilities)
+}
+
+getgenv().MobList = {}
+Rune.InventoryCache = {}
+Rune.FoundItems = {}  
+Rune.Loops = {}
+
+function Rune.LoopStart(name, func, interval)
+    assert(typeof(name) == "string", "Loop name must be a string")
+    assert(typeof(func) == "function", "Loop function must be a function")
+    assert(typeof(interval) == "number", "Interval must be a number")
+    if Rune.Loops[name] then
+        warn("Loop '" .. name .. "' is already running.")
+        return
+    end
+    Rune.Loops[name] = true
+    task.spawn(function()
+        while Rune.Loops[name] do task.wait(interval)
+            func()
+        end
+    end)
+end
+function Rune.LoopStop(name)
+    assert(typeof(name) == "string", "Loop name must be a string")
+    if not Rune.Loops[name] then
+        warn("Loop '" .. name .. "' is not running.")
+        return
+    end
+    Rune.Loops[name] = nil
+end
+function Rune.CreateMobList()
+    local seen = {}
+    local excludedInstances = {} 
+    local petNames = {}
+    for _, player in pairs(Players:GetPlayers()) do
+        local playerFolder = workspace.Alive:FindFirstChild(player.Name)
+        if playerFolder then
+            local pet = playerFolder:FindFirstChild("Pet")
+            if pet and pet:IsA("ObjectValue") and pet.Value then
+                petNames[pet.Value.Name] = true 
+            end
+        end
+    end
+    for _, mob in pairs(workspace.Alive:GetChildren()) do
+        if Players:GetPlayerFromCharacter(mob) then continue end
+
+        local fullName = mob.Name 
+        local baseName = fullName:match("^(.-)%..*$") or fullName 
+
+        if petNames[fullName] then
+            excludedInstances[fullName] = true 
+        else
+            if not seen[baseName] and not excludedInstances[fullName] then
+                warn(baseName)
+                seen[baseName] = true 
+                table.insert(getgenv().MobList, baseName)
+            end
+        end
+    end
+    warn("CreatedMobList")
+end
+
+function Rune.GetCharacterComponents()
+    local character = LocalPlayer.Character
+    if not character or not character.Parent then return nil end
+    
+    local components = {
+        character = character,
+        characterHandler = character:FindFirstChild("CharacterHandler"),
+        input = character:FindFirstChild("CharacterHandler") and character.CharacterHandler:FindFirstChild("Input"),
+        events = character:FindFirstChild("CharacterHandler") and character.CharacterHandler:FindFirstChild("Input") and character.CharacterHandler.Input:FindFirstChild("Events")
+    }
+    
+    for name, component in pairs(components) do
+        if not component then
+            return nil
+        end
+    end
+    
+    return components
+end
+
+function Rune.GetPlayerGui()
+    local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+    if not playerGui then return nil end
+    
+    return playerGui
+end
+
+function Rune.MouseEvent(event)
+    assert(typeof(event) == "string", "Event must be a string")
+    
+    local components = Rune.GetCharacterComponents()
+    if not components then return end
+    
+    local mouseInput = components.events:FindFirstChild("MouseInput")
+    if not mouseInput then return end
+    
+    mouseInput:Fire({ Config = event })
+end
+
+function Rune.MouseInput(event)
+    assert(typeof(event) == "string", "Event must be a string")
+    
+    local components = Rune.GetCharacterComponents()
+    if not components then return end
+    
+    if Modules.Network then
+        Modules.Network.connect("MouseInput", "Fire", components.character, { Config = event })
+    end
+end
+
+function Rune.MasterSignal(event)
+    assert(typeof(event) == "string", "Event must be a string")
+    
+    local components = Rune.GetCharacterComponents()
+    if not components then return end
+    
+    if Modules.Network then
+        Modules.Network.connect("MasterEvent", "FireServer", components.character, { Config = event })
+    end
+end
+
+function Rune.Interact(Object, Action)
+    assert(typeof(Object) == "Instance", "Object must be an Instance")
+    assert(typeof(Action) == "string", "Action must be a string")
+    
+    local components = Rune.GetCharacterComponents()
+    if not components then return end
+    
+    local interact = components.events:FindFirstChild("Interact")
+    if not interact then return end
+    
+    interact:FireServer({
+        player = LocalPlayer,
+        Object = Object,
+        Action = Action
+    })
+end
+
+function Rune.Smelt(Amount, Item, Into)
+    assert(typeof(Amount) == "number", "Amount must be a number")
+    assert(typeof(Item) == "string", "Item must be a string")
+    assert(typeof(Into) == "string", "Into must be a string")
+    
+    local playerGui = Rune.GetPlayerGui()
+    if not playerGui then return end
+    
+    local craftingGui = playerGui:FindFirstChild("CraftingGui")
+    if not craftingGui then return end
+    
+    local localScript = craftingGui:FindFirstChild("LocalScript")
+    if not localScript then return end
+    
+    local remoteEvent = localScript:FindFirstChild("RemoteEvent")
+    if not remoteEvent then return end
+    
+    remoteEvent:FireServer({
+        AmountToCraft = Amount,
+        SelectedItem = {
+            Materials = {{ Name = Item, Amount = Amount }},
+            ToolTip = "",
+            Station = "Smelter",
+            Name = Into
+        }
+    })
+end
+
+function Rune.NearestInteract()
+    local event = Instance.new("BindableEvent")  
+    local textLabel = LocalPlayer.PlayerGui:FindFirstChild("GUI") 
+        and LocalPlayer.PlayerGui.GUI:FindFirstChild("Interact") 
+        and LocalPlayer.PlayerGui.GUI.Interact:FindFirstChild("TextLabel")
+    
+    if not textLabel or not textLabel:IsA("TextLabel") then return end
+    local action = textLabel.Text:match("%[E%] %- (%S+)")
+    local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not action or not root then return end
+    
+    local nearest, minDist = nil, 10
+    
+    for _, parent in ipairs({
+        workspace:FindFirstChild("Harvestable"),
+        workspace:FindFirstChild("Alive"), 
+        workspace:FindFirstChild("Effects") and workspace.Effects:FindFirstChild("NPCS")
+    }) do
+        if parent then
+            for _, obj in ipairs(parent:GetChildren()) do
+                if (obj:IsA("Model") or obj:IsA("MeshPart") or obj:IsA("UnionOperation")) 
+                    and not obj:IsDescendantOf(LocalPlayer.Character) then
+                    
+                    local part = obj:IsA("Model") and obj.PrimaryPart or obj
+                    local partPosition = nil
+                    
+                    if obj:IsA("Model") and obj.WorldPivot then
+                        partPosition = obj.WorldPivot.Position
+                    elseif part and (part:IsA("UnionOperation") or part:IsA("MeshPart")) and part.CFrame then
+                        partPosition = part.CFrame.Position
+                    end
+                    
+                    if partPosition then
+                        local dist = (root.Position - partPosition).Magnitude
+                        if dist < minDist then
+                            nearest, minDist = obj, dist
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    if nearest then
+        if action == "Talk" then action = "NPC" end
+        Rune.Interact(nearest, action)
+        warn("Interacting with:", nearest:GetFullName(), "Action:", action)
+        
+        task.spawn(function()
+            while nearest.Parent do 
+                task.wait() 
+            end
+            warn("Item Done With:", nearest.Name)
+            event:Fire(true) 
+        end)
+    end
+    
+    return event.Event
+end
+
+function Rune.Parry()
+    task.spawn(function()
+        local success = pcall(function()
+            Rune.MasterSignal("Block")
+            task.wait()
+            Rune.MasterSignal("StopBlock")
+        end)
+        if not success then
+            warn("Parry failed - character may be dead or components missing")
+        end
+    end)
+end
+
+function Rune.getNearestMob(maxDistance)
+    local aliveFolder = workspace:FindFirstChild("Alive")
+    if not aliveFolder then
+        warn("Alive folder not found in workspace")
+        return nil
+    end
+    
+    local player = game.Players.LocalPlayer
+    local playerPosition = player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character.HumanoidRootPart.Position or Vector3.new(0, 0, 0)
+    local nearestMob = nil
+    local nearestDistance = maxDistance or 400
+    
+    for _, mob in ipairs(aliveFolder:GetChildren()) do
+        if mob:IsA("Model") and mob.Name ~= player.Name then
+            local primaryPart = mob.PrimaryPart or mob:FindFirstChild("HumanoidRootPart")
+            if primaryPart then
+                local distance = (primaryPart.Position - playerPosition).Magnitude
+                if distance <= nearestDistance then
+                    nearestMob = mob
+                    nearestDistance = distance
+                end
+            end
+        end
+    end
+    
+    return nearestMob
+end
+
+function Rune.TweenTo(speed, ...)
+    local args = {...}
+    local cf
+    if typeof(args[1]) == "CFrame" then
+        cf = args[1]
+    elseif #args == 3 then
+        cf = CFrame.new(args[1], args[2], args[3])
+    elseif #args == 12 then
+        cf = CFrame.new(
+            args[1], args[2], args[3], 
+            args[4], args[5], args[6], 
+            args[7], args[8], args[9], 
+            args[10], args[11], args[12]
+        )
+    else
+        error("Invalid CFrame input. Provide either 3 (Position) or 12 (Full CFrame) numbers.")
+    end
+    local tweenService = game:GetService("TweenService")
+    local tweenInfo = TweenInfo.new(speed, Enum.EasingStyle.Linear)    
+    local event = Instance.new("BindableEvent")  
+    local player = game:GetService("Players").LocalPlayer
+    local character = player.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then
+        event:Fire(false)  
+        return event.Event
+    end
+    local hrp = character.HumanoidRootPart
+    local tween = tweenService:Create(hrp, tweenInfo, {CFrame = cf}) 
+    tween:Play()
+    task.spawn(function()
+        while tween.PlaybackState == Enum.PlaybackState.Playing do  
+            task.wait(0.1) 
+            if (hrp.Position - cf.Position).Magnitude <= 5 then
+                tween:Cancel()
+                event:Fire(true) 
+                break
+            end
+        end
+    end)
+
+    return event.Event  
+end
+
+function Rune.IsValidHarvest(Item)
+    assert(typeof(Item) == "Instance", "Object must be an Instance")
+    
+    local validClasses = { UnionOperation = true, MeshPart = true, Model = true }
+    local itemType = Item.ClassName
+    if validClasses[itemType] then
+        return true, itemType
+    end
+    return false, nil 
+end
+
+function Rune.LookUpinHarvest(ItemName, radius, originPosition)
+    assert(typeof(ItemName) == "string", "ItemName must be a string")
+    assert(typeof(radius) == "number", "Radius must be a number")
+    assert(typeof(originPosition) == "Vector3", "Expected Vector3 position")
+    local nearestItem = nil
+    local shortestDistance = radius
+    local positionstanding = nil
+    local itemPosition;
+    for _, item in pairs(workspace.Harvestable:GetChildren()) do
+        local isValid, dataType = Rune.IsValidHarvest(item)
+        if isValid and item.Name == ItemName then
+            if dataType == "Model" then
+                itemPosition = item.PrimaryPart and item.PrimaryPart.Position or nil
+            else
+                itemPosition = item.Position
+            end
+            if itemPosition then
+                local distance = (originPosition - itemPosition).Magnitude
+                if distance < shortestDistance then
+                    shortestDistance = distance
+                    nearestItem = item
+                    positionstanding = itemPosition
+                end
+            end
+        end
+    end
+
+    return nearestItem,positionstanding
+end
+function Rune.LookUpinMob(MobName, radius, originPosition)
+    assert(typeof(MobName) == "string" or typeof(MobName) == "table", "MobName must be a string or table")
+    assert(typeof(radius) == "number", "Radius must be a number")
+    assert(typeof(originPosition) == "Vector3", "Expected Vector3 position")
+    
+    local nearestMob, shortestDistance, mobPosition = nil, radius, nil
+    local aliveFolder = workspace:FindFirstChild("Alive")
+    if not aliveFolder then
+        warn("Alive folder not found in workspace")
+        return nil, nil
+    end
+    local petNames = {}
+    for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+        local playerFolder = aliveFolder:FindFirstChild(player.Name)
+        if playerFolder then
+            local pet = playerFolder:FindFirstChild("Pet")
+            if pet and pet:IsA("ObjectValue") and pet.Value then
+                petNames[pet.Value.Name] = true 
+            end
+        end
+    end
+    for _, mob in pairs(aliveFolder:GetChildren()) do
+        local fullName = mob.Name
+        local baseName = fullName:match("^(.-)%..*$") or fullName
+        local isValidMob = 
+            (typeof(MobName) == "string" and baseName == MobName) or
+            (typeof(MobName) == "table" and table.find(MobName, baseName)) or
+            (getgenv().fairyfarm and table.find(functions.mobFarm.SelectedFairys, baseName))
+        if isValidMob and mob:FindFirstChild("Pet") and mob.Pet.Value == nil and not petNames[mob.Name] then
+            local position = nil
+            
+            if mob:IsA("Model") and mob.WorldPivot then
+                position = mob.WorldPivot.Position
+            elseif mob:FindFirstChild("PrimaryPart") then
+                position = mob.PrimaryPart.Position
+            elseif mob:FindFirstChild("HumanoidRootPart") then
+                position = mob:FindFirstChild("HumanoidRootPart").Position
+            end
+
+            if position then
+                local distance = (originPosition - position).Magnitude
+                if distance < shortestDistance then
+                    nearestMob, shortestDistance, mobPosition = mob, distance, position
+                end
+            end
+        end
+    end
+    
+    return nearestMob, mobPosition
+end
+function Rune.ServerHop()
+    local HttpService = game:GetService("HttpService")
+    local TeleportService = game:GetService("TeleportService")
+    
+    local servers = {}
+    local req = request({
+        Url = string.format("https://games.roblox.com/v1/games/%s/servers/Public?sortOrder=Asc&limit=100", game.PlaceId)
+    })
+    local body = HttpService:JSONDecode(req.Body)
+    
+    if body and body.data then
+        for _, server in pairs(body.data) do
+            if server.playing and server.playing < server.maxPlayers then
+                table.insert(servers, server)
+            end
+        end
+        
+        if #servers > 0 then
+            table.sort(servers, function(a, b)
+                return a.playing < b.playing
+            end)
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, servers[1].id)
+        end
+    end
+end
+
+function Rune.PlaySound(id)
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local sound = Instance.new("Sound")
+    sound.SoundId = id
+    sound.Volume = 1
+    sound.Parent = character:FindFirstChild("HumanoidRootPart") 
+    sound:Play()
+end
+function Rune.RefreshInventory()
+    local backpack = game:GetService("Players").LocalPlayer.Backpack
+    if  #Rune.InventoryCache > 0 then
+        Rune.InventoryCache = {}
+    end 
+    for _, item in ipairs(backpack:GetChildren()) do
+        Rune.InventoryCache[item.Name] = Rune.InventoryCache[item.Name] or {}
+        table.insert(Rune.InventoryCache[item.Name], item)
+    end
+end
+function Rune.WatchInventory()
+    local backpack = game:GetService("Players").LocalPlayer.Backpack
+    backpack.ChildAdded:Connect(function(item)
+        Rune.InventoryCache[item.Name] = Rune.InventoryCache[item.Name] or {}
+        table.insert(Rune.InventoryCache[item.Name], item)
+    end)
+    backpack.ChildRemoved:Connect(function(item)
+        if Rune.InventoryCache[item.Name] then
+            for i, cachedItem in ipairs(Rune.InventoryCache[item.Name]) do
+                if cachedItem == item then
+                    table.remove(Rune.InventoryCache[item.Name], i)
+                    break
+                end
+            end
+
+            if #Rune.InventoryCache[item.Name] == 0 then
+                Rune.InventoryCache[item.Name] = nil
+            end
+        end
+    end)
+end
+
+function Rune.LookUpInventory(searchTerm, partialMatch)
+    assert(typeof(searchTerm) == "string", "Search term must be a string")
+    assert(partialMatch == nil or typeof(partialMatch) == "boolean", "partialMatch must be a boolean or nil")
+    local foundItems = {}
+    for itemName, items in pairs(Rune.InventoryCache) do
+        if (partialMatch and string.find(itemName, searchTerm)) or (not partialMatch and itemName == searchTerm) then
+            for _, item in ipairs(items) do
+                table.insert(foundItems, item)
+            end
+        end
+    end
+    Rune.FoundItems = foundItems  
+    return #foundItems > 0, foundItems
+end
+
+function Rune.SellEvent(state)
+    assert(typeof(state) == "boolean", "State must be a boolean")
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local charHandler = assert(character:FindFirstChild("CharacterHandler"), "CharacterHandler not found")
+    local charInput = assert(charHandler:FindFirstChild("Input"), "Input not found")
+    local events = assert(charInput:FindFirstChild("Events"), "Events not found")
+    local remoteEvent = assert(events:FindFirstChild("SellEvent"), "SellEvent not found")
+    remoteEvent:FireServer(state)
+end
+
+function Rune.SellItem(itemName)
+    assert(typeof(itemName) == "string", "Item name must be a string")
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local backpack = player.Backpack
+    local charHandler = assert(character:FindFirstChild("CharacterHandler"), "CharacterHandler not found")
+    local charInput = assert(charHandler:FindFirstChild("Input"), "Input not found")
+    local events = assert(charInput:FindFirstChild("Events"), "Events not found")
+    local remoteEvent = assert(events:FindFirstChild("SellEvent"), "SellEvent not found")
+    local found, item = Rune.LookUpInventory(itemName)
+    if not found then
+        return warn("Item '" .. itemName .. "' not found in Backpack")
+    end
+    local args = {
+        [1] = item
+    }
+    remoteEvent:FireServer(unpack(item))
+end
+
+getgenv().moblistt = {}
+function Rune.MobNotifier(lf,ifnot)
+    local count = 0
+    local aliveFolder = workspace:FindFirstChild("Alive")
+    local dontexist = nil
+    if not aliveFolder then
+        warn("Alive folder not found in workspace")
+        return
+    end
+    if count == 0 then
+        aliveFolder.ChildAdded:Connect(function(newMob)
+            local fullName2 = newMob.Name 
+            local baseName2 = fullName2:match("^(.-)%..*$") or fullName2 
+            if pcall(table.find(lf,baseName2) or table.find(getgenv().moblistt,baseName2) or table.find(functions.mobFarm.selectedMobs,baseName2) and getgenv().mobalert) then
+                Rune.PlaySound("rbxassetid://85243953582838")
+                NotificationLibrary:SendNotification("Success", "[Mob Notifier]: mob spawned > "..baseName2, 10)
+            end
+        end)
+    end
+    for _, mob in ipairs(aliveFolder:GetChildren()) do
+        local fullName = mob.Name 
+        local baseName = fullName:match("^(.-)%..*$") or fullName 
+        if pcall(table.find(lf,baseName2) or table.find(getgenv().moblistt,baseName2) or table.find(functions.mobFarm.selectedMobs,baseName2) and getgenv().mobalert)then
+            Rune.PlaySound("rbxassetid://85243953582838")
+            NotificationLibrary:SendNotification("Success", "[Mob Notifier]: mob found! | already exist > "..baseName, 10)
+        else
+            count = count+1
+            warn("going")
+        end
+    end
+    warn("finished")
+    warn("Hoped")
+    if not dontexist and ifnot then
+        NotificationLibrary:SendNotification("Error", "[Not Found]: Server-Hoping", 3)
+        task.delay(2,function()
+            Rune.ServerHop()
+        end)
+    end
+end
+
+function Rune.MobChecker(check)
+    local aliveFolder = workspace:FindFirstChild("Alive")
+    if not aliveFolder then
+        warn("Alive folder not found in workspace")
+        return nil
+    end
+    local isTable = typeof(check) == "table" 
+    local found = nil
+    for _, mob in ipairs(aliveFolder:GetChildren()) do
+        local fullName = mob.Name
+        local baseName = fullName:match("^(.-)%..*$") or fullName
+        if (isTable and table.find(check, baseName)) or (not isTable and baseName == check) then
+            Rune.PlaySound("rbxassetid://85243953582838")
+            found = true
+        end
+    end
+
+    return found
+end
+return Rune
